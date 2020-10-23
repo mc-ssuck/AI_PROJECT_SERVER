@@ -1,0 +1,232 @@
+* {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+body {
+  background-color: #060606;
+}
+.wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.number-display {
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #060606;
+}
+
+.number {
+  height: 140px;
+}
+
+.char-grid {
+  width: max-content;
+  height: 100%;
+  display: grid;
+}
+
+#row-0,
+#row-1,
+#row-2,
+#row-3,
+#row-4,
+#row-5,
+#row-6,
+#row-7,
+#row-8,
+#row-9 {
+  display: grid;
+  grid-template-columns: repeat(14, 1vw);
+  position: relative;
+}
+
+.bulb {
+  width: 80%;
+  height: 85%;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  box-shadow: 0 0 40px #141415, 0 0 150px #101010, inset 0 20px 20px 40px #1c1c3530,
+    0px 0px 20px 1px black;
+}
+
+.bulb-on {
+  width: 80%;
+  height: 85%;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 40px #b803c3, 0 0 150px #6e00ffe8, inset 0 20px 20px 60px whitesmoke,
+    inset 30px 0 35px 50px ivory;
+}
+
+/* .elevator-indicator {
+      font-size: 48px;
+      font-weight: bold;
+      float: left;
+      color: #999;
+      padding: 12px;
+    }
+  
+    .glyphicon {
+      position: relative;
+      top: 1px;
+      display: inline-block;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: 400;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .glyphicon-chevron-down:before {
+      content: "\e114";
+  } */
+
+.main {
+  display: flex;
+  width: 100%;
+}
+.button-panel {
+  /* background-color: palevioletred; */
+  background-color: #060606;
+  width: 20%;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  grid-gap: 2%;
+  grid-template-columns: repeat(4, 4.4vw);
+}
+
+.btn-num {
+  width: 4vw;
+  height: 4vw;
+  font-size: 1.5vw;
+  background: transparent;
+  color: white;
+  border: 2px solid #6400a0;
+  border-radius: 40%;
+  background: linear-gradient(to right, #6400a0 50%, transparent 50%);
+  background-size: 200% 100%;
+  background-position: right bottom;
+  transition: all 0.2s ease-in;
+}
+
+.btn-num:hover,
+.btn-num:focus {
+  background-position: left bottom;
+  outline: 0;
+}
+
+.btn-num:hover {
+  color: black;
+  background: #7913afcc;
+  box-shadow: 0 0 40px #b803c3, 0 0 150px #6e00ffe8, inset 0 20px 20px 60px whitesmoke,
+    inset 30px 0 35px 50px rgb(155, 117, 150);
+}
+
+.btn-num:focus {
+  color: black;
+  background: #4b336d;
+  box-shadow: 0 0 40px #b803c3, 0 0 150px #6e00ffe8, inset 0 20px 20px 60px whitesmoke,
+    inset 30px 0 35px 50px rgb(155, 117, 150);
+}
+
+.video-news {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  transition: all 1s;
+}
+
+.video {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-around;
+  background-color: #060606;
+  transition: all 2s;
+}
+
+.news {
+  display: flex;
+  background-color: #060606;
+  color: white;
+}
+
+.news__title {
+  width: 50%;
+  overflow-y: auto;
+}
+
+.news__title::-webkit-scrollbar-track,
+.news__content::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  background-color: #000000f1;
+}
+
+.news__title::-webkit-scrollbar,
+.news__content::-webkit-scrollbar {
+  width: 12px;
+  background-color: #000000f1;
+}
+
+.news__title::-webkit-scrollbar-thumb,
+.news__content::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: #380353dc;
+}
+
+.title {
+  height: 30%;
+  padding: 1%;
+}
+
+.news__content {
+  width: 50%;
+  overflow-y: auto;
+}
+
+.content {
+  padding: 1%;
+}
+
+.hidden {
+  display: none;
+  opacity: 0;
+}
+
+.appear {
+  animation: fade-in 1s;
+  animation-fill-mode: forwards;
+  display: grid;
+}
+
+.disappear {
+  animation: fade-out 1s;
+  animation-fill-mode: forwards;
+  flex-grow: 0.001;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

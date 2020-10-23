@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.6/socket.io.js"></script>
+    <script type="text/javascript">
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+      socket.on('connect', function() {
+                console.log('connected');
+      });
+      socket.on('message', function(data) {
+                 console.log(data);
+      });
+      socket.on('from_flask', function (data) {
+          alert('hi')
+          console.log(data.image);
+          $("#imageElement").attr("src","data:image/jpeg;base64,"+ data.image);
+      });
+    </script>
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"> -->
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <div class="number-display">
+        <!-- <div id="up-indicator"
+              class="elevator-indicator">
+              <span class="glyphicon glyphicon-chevron-up"
+                aria-hidden="true"></span>
+            </div> -->
+        <div class="number">
+          <div class="char-grid">
+            <div class="row" id="row-0">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-1">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-2">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-3">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-4">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-5">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-6">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-7">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-8">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+            <div class="row" id="row-9">
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb-on"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+              <div class="bulb"></div>
+            </div>
+          </div>
+        </div>
+        <!-- <div id="down-indicator"
+              class="elevator-indicator">
+              <span class="glyphicon glyphicon-chevron-down"
+                aria-hidden="true"></span>
+            </div> -->
+      </div>
+      <div class="main">
+        <div class="button-panel appear" id="userInput">
+          <!-- <div class="control-panel col-3"> -->
+          <!-- <div class="panel-buttons" > -->
+          <!-- <button type="button" class="btn-num" id="btn-0" value="0">G</button>
+                      <button type="button" class="btn-num" id="btn-0" value="0">G</button>
+                      <button type="button" class="btn-num" id="btn-0" value="0">G</button> -->
+          <button type="button" class="btn-num" id="btn-1" value="1">1</button>
+          <button type="button" class="btn-num" id="btn-2" value="2">2</button>
+          <button type="button" class="btn-num" id="btn-3" value="3">3</button>
+          <button type="button" class="btn-num" id="btn-4" value="4">4</button>
+          <button type="button" class="btn-num" id="btn-5" value="5">5</button>
+          <button type="button" class="btn-num" id="btn-6" value="6">6</button>
+          <button type="button" class="btn-num" id="btn-7" value="7">7</button>
+          <button type="button" class="btn-num" id="btn-8" value="8">8</button>
+          <button type="button" class="btn-num" id="btn-9" value="9">9</button>
+          <button type="button" class="btn-num" id="btn-10" value="10">10</button>
+          <button type="button" class="btn-num" id="btn-11" value="11">11</button>
+          <button type="button" class="btn-num" id="btn-12" value="12">12</button>
+          <button type="button" class="btn-num" id="btn-13" value="13">13</button>
+          <button type="button" class="btn-num" id="btn-14" value="14">14</button>
+          <button type="button" class="btn-num" id="btn-15" value="15">15</button>
+          <button type="button" class="btn-num" id="btn-16" value="16">16</button>
+          <button type="button" class="btn-num" id="btn-17" value="17">17</button>
+          <button type="button" class="btn-num" id="btn-18" value="18">18</button>
+          <button type="button" class="btn-num" id="btn-19" value="19">19</button>
+          <button type="button" class="btn-num" id="btn-20" value="20">20</button>
+          <button type="button" class="btn-num" id="btn-21" value="21">21</button>
+          <button type="button" class="btn-num" id="btn-22" value="22">22</button>
+          <button type="button" class="btn-num" id="btn-23" value="23">23</button>
+          <button type="button" class="btn-num" id="btn-24" value="24">24</button>
+          <button type="button" class="btn-num" id="btn-25" value="25">25</button>
+          <button type="button" class="btn-num" id="btn-26" value="26">26</button>
+          <button type="button" class="btn-num" id="btn-27" value="27">27</button>
+          <button type="button" class="btn-num" id="btn-28" value="28">28</button>
+          <button type="button" class="btn-num" id="btn-29" value="29">29</button>
+          <!-- </div> -->
+          <!-- </div> -->
+        </div>
+        <div class="video-news">
+          <div class="video">
+            <div class="video1">
+              <img id="imageElement" src="/video_feed">
+            </div>
+            <div class="video2">
+              <iframe
+                width="560"
+                height="315"
+                src="https://www.youtube.com/embed/sYe-RMXn3KI"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+          <div class="news">
+            <div class="news__title">
+              <div class="title">{{ data.command }}</div>
+              <div class="title">제목</div>
+              <div class="title">제목</div>
+              <div class="title">제목</div>
+              <div class="title">제목</div>
+              <div class="title">제목</div>
+              <div class="title">제목</div>
+            </div>
+            <div class="news__content">
+              <div class="content">내용</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <script>
+    console.log("Hello, World!");
+    var floor = "{{data}}";
+    countToFloor(1, floor);
+  </script>
+</html>

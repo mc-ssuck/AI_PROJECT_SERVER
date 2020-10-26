@@ -2,7 +2,6 @@
 Javascript to compute what number to display based on the user input.
 Uses a dictionary that stores True/False values for each number from 0-9 for each row item
 */
-
 let numbers_dict = {
 	0: [
 	  [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
@@ -378,18 +377,23 @@ let numbers_dict = {
   let input_value
   let floor_value = 0
   
+  
   // Event listener for the button control panel
   input_value = document.getElementById("userInput")
   input_value.addEventListener("click", function (e) {
 	floor_value = countToFloor(floor_value, e.target.value)
 	const target = this
-	if (target.classList.contains("appear")) {
-	  target.classList.add("disappear")
-	  setTimeout(function () {
-		target.classList.remove("appear")
-		target.style.display = "none"
-	  }, 1001)
-	}
+	// if (target.classList.contains("appear")) {
+	//   target.classList.add("disappear")
+	//   setTimeout(function () {
+	// 	target.classList.remove("appear")
+	// 	target.style.display = "none"
+	//   }, 1001)
+	// }
+	// 버튼 눌리면 번호 패널 사라지기
+	setTimeout(function () {
+		target.style.right = "-415px"
+	}, 600)
   })
   
   // FUNCTION DECLARATIONS
@@ -450,4 +454,3 @@ let numbers_dict = {
 	start = parseInt(end) //returns a new floor value where the last floor is the start floor
 	return start
   }
-  

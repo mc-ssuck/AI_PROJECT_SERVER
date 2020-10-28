@@ -15,10 +15,8 @@ import dlib
 import os
 from utils.aux_functions import *
 import math
-import datetime
 from RetinaFace.retinaface_cov import RetinaFaceCoV
 from PIL import Image, ImageFile
-import insightface
 import tensorflow as tf
 from parameters import *
 import keras
@@ -39,13 +37,6 @@ import re
 import sys
 import time
 
-from google.cloud import speech
-import pyaudio
-from six.moves import queue
-import os
-import playsound
-from google.cloud import texttospeech
-
 import subprocess
 import inspect
 
@@ -58,49 +49,39 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS']='./STT_TTS/speech-to-text-292808-d4d23dae896a.json'
-
-COUNT = 0
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
 
 ## function define ##
-def send_mail(text, target_email):
+def send_mail(text):
     smtp = smtplib.SMTP('smtp.gmail.com', 587)
     
     smtp.ehlo()
     smtp.starttls()
     
-    my_email = 'mountaingyu@gmail.com'
-    my_email_pw = 'drflvuubntuijpng'
-    your_email = target_email
+    my_email = # Fill your Email
+    my_email_pw = # Fill your PW
+    your_email = text['email']
     
     smtp.login(my_email, my_email_pw)
     
-    message = MIMEText(text)
-    message['Subject'] = '기사 제목'
+    results = ""
+    for i in range(len(text['title'])):
+        results += '\n'
+        results += '제목 : ' + text['title'][i] + '\n'
+        results += '-' * (3 * len(text['title'][i]) + 5)  + '\n'
+        results += '내용 : ' + text['content'][i] + '\n'
+        results += '\n'
+    
+    results += '\n'
+    message = MIMEText(results)
+    message['Subject'] = str(datetime.datetime.now()) + '_기사 모음'
     message['From'] = my_email
     message['To'] = your_email
     
     smtp.sendmail(my_email, your_email, message.as_string())
     
     smtp.quit()
-
-
-
-
-def verify(image_path, identity, database, model):
-    encoding = img_to_encoding2(image_path, model, False)
-    min_dist = 1000
-    for  pic in database:
-        dist = np.linalg.norm(encoding - pic)
-        if dist < min_dist:
-            min_dist = dist
-    print(identity + ' : ' +str(min_dist)+ ' ' + str(len(database)))
-    
-    if min_dist<THRESHOLD:
-        door_open = True
-    else:
-        door_open = False
-    return min_dist, door_open
 
 
 def img_to_encoding2(image, model, path=True):
@@ -127,63 +108,6 @@ model = None
 
 known_face_encodings = None
 known_face_names = None
-
-
-now = datetime.datetime.now() #파일이름 현 시간으로 저장하기
-day_before = now - datetime.timedelta(days=1)
-now = str(datetime.datetime.now())[:10].replace('-', '')
-day_before = str(day_before)[:10].replace('-', '')
-
-
-def get_news(n_url):
-    news_detail = []
-    headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'}
-    breq = requests.get(n_url, headers=headers)
-    bsoup = BeautifulSoup(breq.content, 'html.parser')
-    
-    title = bsoup.select('#articleTitle')[0].text  #대괄호는  h3#articleTitle 인 것중 첫번째 그룹만 가져오겠다.
-    news_detail.append(title)
-    pdate = bsoup.select('.t11')[0].get_text()[:11]
-    news_detail.append(pdate)
-
-    _text = bsoup.select('#articleBodyContents')[0].get_text().replace('\n', " ")
-    btext = _text.replace("// flash 오류를 우회하기 위한 함수 추가 function _flash_removeCallback() {}", "")
-    news_detail.append(btext.strip())
-  
-    news_detail.append(n_url)
-    
-    pcompany = bsoup.select('#footer address')[0].a.get_text()
-    news_detail.append(pcompany)
-
-    return news_detail
-
-
-def crawler(maxpage,query,s_date, e_date):
-    s_from = s_date
-    e_to = e_date
-    page = 1
-    maxpage_t =(int(maxpage)-1)*10+1   # 11= 2페이지 21=3페이지 31=4페이지  ...81=9페이지 , 91=10페이지, 101=11페이지
-    news = {'title':[], 'contents':[]}
-    
-    while page < maxpage_t:
-        url = "https://search.naver.com/search.naver?where=news&query=" + query + "&sort=1&ds=" + s_date + "&de=" + e_date + "&nso=so%3Ar%2Cp%3Afrom" + s_from + "to" + e_to + "%2Ca%3A&start=" + str(page)
-        
-        req = requests.get(url)
-        cont = req.content
-        soup = BeautifulSoup(cont, 'html.parser')
-    
-        for urls in soup.select("._sp_each_url"):
-            try :
-                if urls["href"].startswith("https://news.naver.com"):
-                    news_detail = get_news(urls["href"])
-                        # pdate, pcompany, title, btext
-                    news['title'].append(news_detail[0])
-                    news['contents'].append(news_detail[2])
-            except Exception as e:
-                print(e)
-                continue
-        page += 10
-    return news
         
     
 def gen():
@@ -195,12 +119,43 @@ def gen():
     ## extract embeddings from databases ##
     thresh = 0.8
     mask_thresh = 0.2
-    known_face_encodings = []
-    known_face_names = []
+    
+    known_face_encodings = dict()
+    
     users = dict()
-    files = glob.glob('../users/*.jpg')
+    files = glob.glob('./users/*.jpg')
     
     total_news = dict()
+    news = dict()
+    
+    tfidf = TfidfVectorizer()
+    
+    korname2engname = dict()
+
+    for file in files:
+        sep = file.split('/')[2]
+        r_sep = sep.split('_')
+        if r_sep[1] == 'augmentation':
+            pass
+        else:
+            total_news[r_sep[3]] = { 'title' : [] , 'contents' : [], 'summary' : [] }
+            known_face_encodings[r_sep[0]] = []
+            korname2engname[r_sep[3]] = r_sep[0]
+                
+    print(known_face_encodings)
+    print(korname2engname)
+                
+    crawled_news = pd.read_csv('reco2.csv')
+    
+    for i in range(len(crawled_news)):
+        user = crawled_news.iloc[i]['user']
+        title = crawled_news.iloc[i]['title']
+        content = crawled_news.iloc[i]['contents']
+        summary = crawled_news.iloc[i]['summary']
+        total_news[user]['title'].append(title)
+        total_news[user]['contents'].append(content)
+        total_news[user]['summary'].append(summary)
+    
     
     for file in files:
         scales = [640, 1080]
@@ -239,108 +194,132 @@ def gen():
             
             emb = img_to_encoding2(croped_img, model)[0]
             emb = emb.reshape(-1)
-            known_face_encodings.append(emb)
+            
             infos = file.split('/')[2]
             info = infos.split('_')
-            users[info[0]] = [info[1], info[2][:-4], 0]
             
-            total_news[info[2][:-4]] = crawler(10, info[2][:-4], day_before, now)
-                            
-            print(infos)
-            known_face_names.append(info[0])
-    
+            if info[1] == 'augmentation':
+                known_face_encodings[korname2engname[info[0]]].append(emb)
+                continue
+            else:
+                known_face_encodings[info[0]].append(emb)
+                
+            
+            # floor, company, count, real_name, email 
+            users[info[0]] = [info[1], info[2], 0, info[3], info[4][:-4]]
+            
     cctv_url = 'http://posproject201013.iptime.org:8787/video_feed'
     video = cv2.VideoCapture(cctv_url)
+    mask_count = 0
+    mask_count_thresh = 15
+    
+    
+    
     while True:
-        scales = [640, 1080]
-        _, img = video.read()
+        try:
+            scales = [640, 1080]
+            _, img = video.read()
 
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        
-        im_shape = img.shape
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-        target_size = scales[0]
-        max_size = scales[1]
-        im_size_min = np.min(im_shape[0:2])
-        im_size_max = np.max(im_shape[0:2])
-        #im_scale = 1.0
-        #if im_size_min>target_size or im_size_max>max_size:
-        im_scale = float(target_size) / float(im_size_min)
-        # prevent bigger axis from being more than max_size:
-        if np.round(im_scale * im_size_max) > max_size:
-            im_scale = float(max_size) / float(im_size_max)
+            im_shape = img.shape
 
-        scales = [im_scale]
-        flip = False
+            target_size = scales[0]
+            max_size = scales[1]
+            im_size_min = np.min(im_shape[0:2])
+            im_size_max = np.max(im_shape[0:2])
+            #im_scale = 1.0
+            #if im_size_min>target_size or im_size_max>max_size:
+            im_scale = float(target_size) / float(im_size_min)
+            # prevent bigger axis from being more than max_size:
+            if np.round(im_scale * im_size_max) > max_size:
+                im_scale = float(max_size) / float(im_size_max)
 
-        faces, landmarks = detector.detect(img, thresh, scales=scales, do_flip=flip)
-        if len(faces) != 0:
-            for i in range(faces.shape[0]):
-                face = faces[i]
-                box = face[0:4].astype(np.int)
-                mask = face[5]
+            scales = [im_scale]
+            flip = False
 
-                name = "Unknown"
+            faces, landmarks = detector.detect(img, thresh, scales=scales, do_flip=flip)
 
-                if mask>=mask_thresh:
-                    name = 'Mask Detected. Please take off your mask.'
-                    ###      R G B
-                    color = (0,0,255)
-                else:
-                    color = (0,255,0)
-                    croped_img = img[box[1]:box[3], box[0]:box[2]]
-                    croped_img = cv2.resize(croped_img, (160, 160), cv2.INTER_CUBIC)
-                    
-                    lab = cv2.cvtColor(croped_img, cv2.COLOR_BGR2LAB)
-                    lab_planes = cv2.split(lab)
-                    clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8 ,8))
-                    lab_planes[0] = clahe.apply(lab_planes[0])
-                    lab = cv2.merge(lab_planes)
-                    croped_img = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)      
-                    
-                    
-                    emb = img_to_encoding2(croped_img, model)[0]
-                    emb = emb.reshape(-1)
-                    sim = -1
-                    idx = 0
-                    for i, known_face in enumerate(known_face_encodings):
-                        cur_sim = cos_sim(known_face, emb)
-                        if sim < cur_sim:
-                            sim = cur_sim
-                            idx = i
+            if faces is None:
+                continue
 
-                    if sim > 0.8:
-                        name = known_face_names[idx]
+            if len(faces) != 0:
+                for i in range(faces.shape[0]):
+                    face = faces[i]
+                    box = face[0:4].astype(np.int)
+                    mask = face[5]
 
-                cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color, 2)
-                font = cv2.FONT_HERSHEY_DUPLEX
-                cv2.putText(img, name, (box[0] + 6, box[1] - 6), font, 1.0, (255, 255, 255), 1)
-                
-                if name != 'Mask Detected. Please take off your mask.' and name != 'Unknown':
-                    print(name, 'detected !!!')
-                    users[name][2] += 1
-                else:
-                    print('no one detected.')
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        ret, jpeg = cv2.imencode('.jpg', img)
-        # print("after get_frame")
-        if img is not None:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-            
-        for user in users.keys():
-            if users[user][2] >= 10:
-                socketio.emit('message', {'name': user, 'floor' : users[user][0], 'company': users[user][1], 'title':total_news[users[user][1]]['title'], 'content':total_news[users[user][1]]['contents']})
-#                 socketio.emit('message', {'name': user, 'floor' : users[user][0], 'company': users[user][1]})
-                users[user][2] = 0
+                    name = "Unknown"
+
+                    if mask>=mask_thresh:
+                        name = 'Mask Detected. Please take off your mask.'
+                        ###      R G B
+                        color = (0,0,255)
+                    else:
+                        color = (0,255,0)
+                        croped_img = img[box[1]:box[3], box[0]:box[2]]
+                        croped_img = cv2.resize(croped_img, (160, 160), cv2.INTER_CUBIC)
+
+                        lab = cv2.cvtColor(croped_img, cv2.COLOR_BGR2LAB)
+                        lab_planes = cv2.split(lab)
+                        clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8 ,8))
+                        lab_planes[0] = clahe.apply(lab_planes[0])
+                        lab = cv2.merge(lab_planes)
+                        croped_img = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)      
+                        emb = img_to_encoding2(croped_img, model)[0]
+                        emb = emb.reshape(-1)
+                        sim = 0.5
+                        idx = 0
+
+
+                        for names in known_face_encodings.keys():
+                            for user_emb in known_face_encodings[names]:
+                                cur_sim = cos_sim(user_emb, emb)
+                                if sim < cur_sim:
+                                    sim = cur_sim
+                                    name = names
+
+                        if sim < 0.80:
+                            name = 'Unknown'
+
+                    cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color, 2)
+                    font = cv2.FONT_HERSHEY_DUPLEX
+                    cv2.putText(img, name, (box[0] + 6, box[1] - 6), font, 1.0, (255, 255, 255), 1)
+
+                    if name != 'Mask Detected. Please take off your mask.' and name != 'Unknown':
+                        print(name, 'detected !!!')
+                        users[name][2] += 1
+                        if users[name][2] >= 15:
+                            print('데이터전송')
+                            socketio.emit('message', {'name': users[name][3], 'floor' : users[name][0], 'company': users[name][1], 'title':total_news[users[name][3]]['title'], 'content':total_news[users[name][3]]['summary'],'send':total_news[users[name][3]]['contents'], 'email' : users[name][4]})
+                            users[name][2] = 0                        
+                    else:
+                        if name == 'Mask Detected. Please take off your mask.':
+                            mask_count += 1
+                            if mask_count >= mask_count_thresh:
+                                mask_count_thresh += mask_count * 2
+                                mask_count = 0
+                                print('음성 재생 필요!')
+                                requests.get(url = 'http://posproject201013.iptime.org:8787/take_mask')
+
+                        print('no one detected.')
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+            ret, jpeg = cv2.imencode('.jpg', img)
+            # print("after get_frame")
+            if img is not None:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+        except Exception as e:
+            print('error occured', e)
         time.sleep(0.01)
 
         
 @socketio.on('email')
 def handle_my_custom_event(json):
-    print('received json: ' + str(json))        
-  
-        
+    print('received json: ' + str(json))
+    send_mail(json)
+    
+    
 @app.route('/video_feed')
 def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
@@ -359,5 +338,4 @@ def connect():
 
     
 if __name__ == '__main__':
-        
     socketio.run(app, host='0.0.0.0', port=8999, debug=True)
